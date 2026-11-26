@@ -1,9 +1,10 @@
 name: 每日股票分析
 
 on:
-  # 定时触发 - 每天北京时间 18:00 (UTC 10:00)
+  # 定时触发：A股北京时间 16:00（UTC 08:00）；美股北京时间周一至周五 07:00（UTC 周日至周四 23:00）
   schedule:
-    - cron: '0 10 * * 1-5'     # 周一到周五，UTC 10:00 = 北京时间 18:00
+    - cron: '0 8 * * 1-5'
+    - cron: '0 23 * * 0-4'
   
   # 手动触发
   workflow_dispatch:
@@ -485,6 +486,12 @@ jobs:
 
           # 判断运行模式
           MODE="${{ github.event.inputs.mode || 'full' }}"
+          if [ "${{ github.event.schedule }}" = "0 23 * * 0-4" ]; then
+            MODE="market-only"
+            export MARKET_REVIEW_REGION="us"
+          elif [ "${{ github.event.schedule }}" = "0 8 * * 1-5" ]; then
+            export MARKET_REVIEW_REGION="cn"
+          fi
           
           echo "=========================================="
           echo "🚀 A股自选股智能分析系统"
